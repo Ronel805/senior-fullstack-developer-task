@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { Request } from 'express';
-import { User } from '../users/users.entity';
+import { User, UserStatus } from '../users/users.entity';
 
 interface RequestWithUser extends Request {
   user?: User;
@@ -14,7 +14,7 @@ interface RequestWithUser extends Request {
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private usersService: UsersService) {}
+  constructor(private usersService: UsersService) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<RequestWithUser>();
@@ -28,6 +28,10 @@ export class AuthGuard implements CanActivate {
 
     if (!user) {
       throw new UnauthorizedException('User not found');
+    }
+
+    if (user.status === UserStatus.Deleted) {
+      throw new UnauthorizedException('This account is deleted');
     }
 
     request.user = user;

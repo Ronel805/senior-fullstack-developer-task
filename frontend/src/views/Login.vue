@@ -10,13 +10,17 @@
 </template>
 
 <script setup>
-import { ref } from "vue"
+import { ref, computed } from "vue"
 import { useRouter } from "vue-router"
 import axios from "axios"
+import { useStore } from "vuex" 
 
 const router = useRouter()
 const username = ref("")
 const error = ref("")
+const store = useStore()
+
+const loggedUsername = computed(() => store.getters.username)
 
 const handleLogin = async () => {
 	try {
@@ -25,10 +29,8 @@ const handleLogin = async () => {
 		const response = await axios.post(`/api/users/login/${username.value}`)
 
 		if (response.data) {
-			router.push({
-				path: "/home",
-				query: { username: username.value },
-			})
+			store.commit("setUser", response.data)
+			router.push("/home")
 		}
 	} catch (err) {
 		error.value =
